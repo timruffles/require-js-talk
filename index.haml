@@ -1,0 +1,326 @@
+%html
+  %head
+    %link{rel:"stylesheet",href:"css/screen.css",media:"screen"}
+  %body
+    %section
+      %h1
+        %span.hl require.js
+        %span - modules for Javascript
+      %a{href:"http://twttr.com/timruffle"}@timruffles
+
+    %section
+      %pre
+        :preserve
+          define("helpers/string",[],function() {
+            return {
+              placeholders: function(str) {
+                var holders = [].slice.call(arguments,1)
+                return str.replace(/%s/g,function() {
+                  return holders.shift() 
+                })
+              }
+            }
+          })
+
+          require(["helpers/string"],function(helper) {
+            alert(
+              helper.placeholders("hello %s","London JS")
+            )
+          })
+
+      %div.code-commentary
+        %a{href:"http://jsfiddle.net/PTR5Z/"} JSFiddle
+
+    %section
+      %h2 Benefits
+      %ul
+        %li Promotes organisation
+        %li Simplicity - not complecting
+        %li Performance - build, minify, lazy load
+
+    %section.subtitle
+      %h2 Core API
+      %pre
+        :preserve
+          define()
+          require()
+
+          requirejs.config()
+
+    %section
+      %pre.has-commentary
+        :preserve
+          define('name',['dep1','n'],
+            function(dep1,n) {
+              return definitionOfName;
+            })
+
+      %ol.code-commentary{start:0}
+        %li Name is optional, let build tool add it
+        %li
+          An array of module names required for definition
+          <code>"x/y/z"</code> looks in <code>baseUrl + "/x/y/z.js"</code>
+        %li
+          Definition - function* passed the dependecies' values
+          %p.minor * or object, but you will end up wanting a fn
+
+    %section
+      %pre.has-commentary
+        :preserve
+          require(['dep1','n'],function(dep1,n) {
+            // do what you have to do
+          })
+
+      %ol.code-commentary{start:0}
+        %li An array of module names required
+        %li
+          Callback - function passed the dependecies' values   
+
+    %section
+      %pre.has-commentary
+        :preserve
+          // pass config when require.js loads
+          requirejs.config({})
+
+          // or define as a global var before
+          var require = {};
+
+      %ul.code-commentary
+        %li
+          :markdown
+            `baseUrl` to tell require.js where to look for modules
+        %li
+          :markdown
+            `paths` map module names to paths (if they differ)
+        %li
+          :markdown
+            `shim` to work with non-AMD code (jQuery, _, BB etc)
+
+    %section
+      %pre.has-commentary
+        :preserve
+          define(function(require, exports, module) {
+            // your common js code here
+            var lib = require("x/y/z");
+          })
+
+      %ul.code-commentary
+        %li Handles common js code
+        %li Use for circular dependencies (but why?)
+        %li Easier to require many mondules (again, a smell)
+        %li Parses function, platform issues (PS3, old Opera)
+        %li Not as close to ECMAScript Harmony
+
+    %section
+      %h2 Summary
+      %ul
+        %li <code>define</code> classes, helpers, tests
+        %li <code>require</code> for procedures that use them (probably only 1 for an OOP app)
+        %li <code>config</code> to setup loading of old scripts via <code>shim</code>
+        %li <code>config.baseUrl</code> to direct require.js to the write paths
+
+    %section
+
+      %h2 Organisation
+      %ul
+        %li No more 5k main.js
+        %li Fewer merge conflicts
+        %li Easier to test
+        %li Conventions help find code
+
+    %section
+      %pre{style:"font-size:0.5em"}
+        :preserve
+          client/js $ tree -d
+          .
+          ├── extensions
+          ├── helpers
+          ├── lang
+          │   └── en
+          │   └── fr
+          ├── libs
+          │   ├── jquery
+          │   │   └── ui
+          │   └── requirejs
+          ├── models
+          ├── sync
+          ├── templates
+          │   ├── performance
+          │   └── table
+          ├── views
+          │   └── mixins
+          └── viewmodels
+
+    %section
+      %h2 Lower accidental complexity
+      %table
+        %tr
+          %th Problem
+          %th require.js
+          %th ad-hoc
+          %th benefit
+        %tr
+          %td Dependecies
+          %td Async in function wrapper
+          %td Check for globals
+          %td No temporal coupling, no globals
+        %tr
+          %td Templates
+          %td <code>require()</code> using <code>text!</code>
+          %td <code>DOM</code>/ad hoc <code>$.ajax</code>
+          %td Consistency, build awareness
+        %tr
+          %td Concatenation
+          %td Reads dependencies
+          %td Script concat
+          %td DRY
+        %tr
+          %td Testing
+          %td Just <code>require()</code> classes
+          %td
+            :preserve
+              Another set of concat, or <code>&lt;script&gt;<code>
+          %td DRY
+        %tr
+          %td Lazy-load
+          %td Just define layers and <code>require()</code> as normal
+          %td ?
+          %td Performance
+
+    %section
+      %h2 High accidental complexity
+      %pre
+        :preserve
+          //=require 'xyz'
+          // require missing, but already in global scope
+
+          // imperative, non-intention revealing
+          if(!window.MyApp) {
+            MyApp = {};
+            MyApp.themodule || (MyApp.themodule = {});
+          }
+          MyApp.themodule.strings = {
+          };
+
+          // temporal coupling
+          MyView.template = $("#my_template")
+
+    %section
+      %h2 Build
+      %pre
+        :preserve
+          var r = require("./r")
+
+          r.optimize({
+            appDir: "../client",
+            dir: "./build",
+            // DRY - lets you reuse app config file for paths etc
+            mainConfigFile: "../client/js/main.js",
+            baseUrl: "js",
+            modules: [
+              {
+                name: "main"
+              },
+              {
+                name: "heavy-grid-code"
+              }
+            ]
+          });
+
+    %section
+      %h2 Build performance benefits
+      %ul
+        %li Fewer HTTP requests
+        %li Lazy load large apps as needed
+        %li Minification via Uglify or Closure
+        %li Minification of CSS
+        %li Inlining templates
+
+    %section
+      %h2 Testing
+      %pre.has-commentary
+        :preserve
+          buster.testCase("Domain", function(run){
+            require(["models/user"],function(User) {
+              run({
+                "user has a session": function() {
+                }
+              })
+            })
+          })
+      %ul.code-commentary
+        %li buster.js works nicely with require - from sinon.js author
+        %li JsTestDriver works if you build (it's fast) first
+
+    %section
+      %h2 Mocking dependencies
+      %pre.has-commentary
+        :preserve
+          testCaseRequire = require.config({
+            context: testCaseName,
+            map: {
+              "*": { // override existing modules
+                "toStub": "stubs/toStub"
+              }
+            }
+          })
+          define("stubs/toStub",stub)
+      %ul.code-commentary
+        %li I normally just pass dependencies to constructors
+
+    %section
+      %h2 Plugins
+      %p.code-commentary Can do all sorts - even load files in other languages (cs etc).
+      %hr
+      %pre
+        :preserve
+          define(["text!my_template.html"],function(template) {
+          });
+      %p.code-commentary <code>text</code> loads text files - mostly for templates
+      %pre
+        :preserve
+          var require = { i18n: { locale: 'fr-fr' } };
+      %p.code-commentary <code>i18n</code> loads modules according to locale
+
+    %section
+      %h2 Writing plugins
+      %pre.has-commentary
+        :preserve
+          // something simple
+          r.optimize({
+            // rewrite content in build (source maps etc)
+            onBuildWrite: function(){}
+          })
+
+          // big changes
+          define("pluginName",{
+            load: function() {}
+          })
+          require("pluginName!module",function() {});
+
+    %section
+      %h2 Alternatives
+      %ul
+        %li <code>JS.Class</code> - nice implementation of global registry pattern
+        %li <code>LAB.js</code> - great for smaller projects
+        %li <code>Sprockets</code> - good for Rails projects with moderate amounts of JS
+
+    %section
+      %h2 Thanks!
+      %p
+        %a{href:"http://truffles.me.uk"} truffles.me.uk
+        %span - starting a series today on testing Backbone.js apps. Signup/follow!
+
+      %a{href:"http://twttr.com/timruffles"} @timruffles
+
+    %script{src:"main.js"}
+    %script{src:"prettify.js"}
+
+
+
+
+
+
+
+
+
