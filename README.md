@@ -7,4 +7,3 @@ To rebuild html (I use `watch` to do it constantly in dev).
 To build sass in dev
 
     sass --watch css:css
-
